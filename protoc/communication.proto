@@ -1,0 +1,17 @@
+syntax = "proto3";  //指定版本，必须要写（proto3、proto2）
+package protoc;
+option go_package = "/";
+enum FOO
+{
+  X = 0;
+};
+
+message communicationMain{
+  map<string,string> header = 1;
+  string apply = 2;
+  map<string,string> extend = 3;
+  int64 ghoul = 4;
+  int64 bee = 5;
+  int64 elen = 6;
+  int64 t = 7;
+}
