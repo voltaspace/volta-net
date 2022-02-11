@@ -5,8 +5,8 @@
 package provider
 
 import (
-	"voltanet/wspl"
 	"github.com/golang/protobuf/proto"
+	"github.com/voltaspace/volta-net/wspl"
 )
 
 // ProtoBuf contains the given interface object.

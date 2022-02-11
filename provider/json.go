@@ -5,8 +5,8 @@
 package provider
 
 import (
-	"voltanet/wspl"
 	"encoding/json"
+	"github.com/voltaspace/volta-net/wspl"
 )
 
 // JSON contains the given interface object.

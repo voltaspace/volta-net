@@ -4,8 +4,8 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/websocket"
 	"time"
-	"voltanet/constant/cmd"
-	"voltanet/utils"
+	"github.com/voltaspace/volta-net/constant/cmd"
+	"github.com/voltaspace/volta-net/utils"
 )
 
 

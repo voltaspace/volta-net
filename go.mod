@@ -1,4 +1,4 @@
-module voltanet
+module github.com/voltaspace/volta-net
 
 go 1.16
 

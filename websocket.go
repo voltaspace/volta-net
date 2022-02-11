@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/google/wire"
 	"github.com/gorilla/websocket"
+	"github.com/voltaspace/volta-net/utils"
 	"net/http"
 	"strconv"
 	"time"
-	"voltanet/utils"
 )
 
 // Configure the upgrader

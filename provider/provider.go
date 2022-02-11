@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"voltanet/wspl"
+	"github.com/voltaspace/volta-net/wspl"
 )
 
 // Render interface is to be implemented by JSON, XML, HTML, YAML and so on.

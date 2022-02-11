@@ -7,8 +7,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/satori/go.uuid"
 	"time"
-	"voltanet/utils"
-	"voltanet/wspl"
+	"github.com/voltaspace/volta-net/utils"
+	"github.com/voltaspace/volta-net/wspl"
 )
 
 type Events struct {

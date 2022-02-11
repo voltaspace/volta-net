@@ -1,7 +1,7 @@
 package wspl
 
 import (
-	"voltanet/protoc"
+	"github.com/voltaspace/volta-net/protoc"
 	"encoding/json"
 	"github.com/golang/protobuf/proto"
 	"time"

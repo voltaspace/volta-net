@@ -1,7 +1,7 @@
 package voltanet
 
 import (
-	"voltanet/container"
+	"github.com/voltaspace/volta-net/container"
 )
 
 type HandlerFunc func(ctx *Context)

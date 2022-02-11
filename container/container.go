@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 	"strconv"
-	"voltanet/utils"
+	"github.com/voltaspace/volta-net/utils"
 )
 
 type Container struct {

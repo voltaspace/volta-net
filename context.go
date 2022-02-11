@@ -2,8 +2,8 @@ package voltanet
 
 import (
 	"strconv"
-	"voltanet/provider"
-	"voltanet/wspl"
+	"github.com/voltaspace/volta-net/provider"
+	"github.com/voltaspace/volta-net/wspl"
 )
 
 type Context struct {

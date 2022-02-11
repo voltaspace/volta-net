@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/voltaspace/volta-net/container"
+	"github.com/voltaspace/volta-net/wspl"
 	"reflect"
 	"runtime/debug"
 	"time"
-	"voltanet/container"
-	"voltanet/wspl"
 )
 
 type WsConn struct {

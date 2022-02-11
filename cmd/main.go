@@ -1,6 +1,6 @@
 package main
 
-import "voltanet"
+import "github.com/voltaspace/volta-net"
 
 func main()  {
 	net := voltanet.NewVoltaNet("0.0.0.0",19999,"json")

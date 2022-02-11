@@ -2,7 +2,7 @@ package voltanet
 
 import (
 	"github.com/gorilla/websocket"
-	"voltanet/wspl"
+	"github.com/voltaspace/volta-net/wspl"
 )
 
 type EventsInterface interface {
