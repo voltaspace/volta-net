@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"github.com/google/wire"
 	"github.com/gorilla/websocket"
-	"github.com/voltaspace/volta-net/utils"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -18,8 +16,7 @@ var upgrader = websocket.Upgrader{
 }
 
 type Options struct {
-	Host string
-	Port int
+	Addr string
 	CtxType string
 }
 
@@ -51,12 +48,16 @@ func NewWebsocket(signal *Signal,events *Events,wsHeartBeat *WsHeartBeat, option
 //.开启socket服务
 func (ws *Websocket) Run() {
 	http.HandleFunc("/", ws.GatewayManager)
-	fmt.Println("Volta Net Start")
+	fmt.Printf("[volta-net] websocket service start (addr %s)",ws.Options.Addr)
 
-	err := http.ListenAndServe(ws.Options.Host+":"+strconv.FormatInt(int64(ws.Options.Port),10), nil)
+	err := http.ListenAndServe(ws.Options.Addr, nil)
 	if err != nil {
 		fmt.Printf("ListenAndServe: %s", err.Error())
 	}
+}
+
+func (ws *Websocket) SetOptions(options *Options){
+	ws.Options = options
 }
 
 func (ws *Websocket) GatewayManager(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +71,7 @@ func (ws *Websocket) GatewayManager(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ws *Websocket) Alloter(conn *websocket.Conn) {
-	defer utils.EndStack("[volta-net]:socket master process closed")
+	defer EndStack("[volta-net]:socket master process closed")
 	wsConn := &WsConn{
 		Conn:    conn,
 		WriteChan: make(chan string, 1000),

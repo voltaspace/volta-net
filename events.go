@@ -6,9 +6,8 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/websocket"
 	"github.com/satori/go.uuid"
-	"time"
-	"github.com/voltaspace/volta-net/utils"
 	"github.com/voltaspace/volta-net/wspl"
+	"time"
 )
 
 type Events struct {
@@ -162,13 +161,14 @@ func (wsEvents Events) SendToUid(uid string, body wspl.WsResponse) (err error) {
 	if uid == "" {
 		return errors.New("uid nil")
 	}
-	data := utils.JsonEncode(body)
+	data,_ := json.Marshal(body)
+	buf := string(data)
 	clientInfo, err := wsEvents.GetClientInfoByUid(uid)
 	if err != nil {
 		return
 	}
 	select {
-	case clientInfo.WsConn.WriteChan <- data:
+	case clientInfo.WsConn.WriteChan <- buf:
 	case <-time.After(2 * time.Second):
 		//.2秒无法写进数据,直接中断
 		return errors.New("write timeout 5s")
@@ -188,11 +188,12 @@ func (wsEvents Events) SendToUidlist(uidList []string, body wspl.WsResponse) (er
 	if len(clientList) <= 0 {
 		return errors.New("client list len < 0")
 	}
-	data := utils.JsonEncode(body)
+	data ,_ := json.Marshal(body)
+	buf := string(data)
 	for _, v := range clientList {
 		//.防止线程阻塞
 		select {
-		case v.WsConn.WriteChan <- data:
+		case v.WsConn.WriteChan <- buf:
 		case <-time.After(2 * time.Second):
 			//.2秒无法写进数据,直接中断
 			continue
@@ -215,10 +216,11 @@ func (wsEvents Events) SendToSocket(ws *websocket.Conn, msg string) (err error) 
 
 //.给所有在线socket推送消息
 func (wsEvents Events) SendToAll(body wspl.WsResponse) {
-	data := utils.JsonEncode(body)
+	data,_ := json.Marshal(body)
+	buf := string(data)
 	allClient := wsEvents.GetAllClient()
 	for _, v := range allClient {
-		v.WsConn.WriteChan <- data
+		v.WsConn.WriteChan <- buf
 	}
 }
 
@@ -253,7 +255,8 @@ func (wsEvents Events) IsOnline(uid string) (res string, err error) {
 	clientInfo, _ := wsEvents.GetClientInfoByUid(uid)
 	buf["clientId"] = clientInfo.ClientId
 	buf["session"] = clientInfo.Session
-	res = utils.JsonEncode(buf)
+	jsonB,_ := json.Marshal(buf)
+	res = string(jsonB)
 	return
 }
 
@@ -272,7 +275,7 @@ func (wsEvents Events) GatewayCheck(wsConn *WsConn) {
 	res := map[string]interface{}{
 		"type": "gate",
 		"msg":  "online",
-		"Date": utils.GetTime(),
+		"Date": time.Now().Format("2006-01-02 15:04:05"),
 	}
 	bodyB, _ := json.Marshal(res)
 	//.防止线程阻塞

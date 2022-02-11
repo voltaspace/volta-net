@@ -3,9 +3,8 @@ package voltanet
 import (
 	"github.com/google/wire"
 	"github.com/gorilla/websocket"
-	"time"
 	"github.com/voltaspace/volta-net/constant/cmd"
-	"github.com/voltaspace/volta-net/utils"
+	"time"
 )
 
 
@@ -26,7 +25,7 @@ func (wsHeartBeat *WsHeartBeat) Run() {
 		//.扫描过期已绑定socket
 		Client.Lock.RLock()
 		for k, v := range Client.ClientList{
-			var date int64 = utils.GetDate()
+			var date int64 = time.Now().Unix()
 			if ((date - v.Pant) > cmd.PING_INTERVAL) {
 				var client ClientInfo = *v
 				outSocket[k] = client
@@ -42,6 +41,10 @@ func (wsHeartBeat *WsHeartBeat) Run() {
 		Client.Lock.Unlock()
 		time.Sleep(time.Second * 3)
 	}
+}
+
+func (wsHeartBeat *WsHeartBeat) SetOptions(options *Options){
+	return
 }
 
 func (wsHeartBeat *WsHeartBeat) HeartBeatUpdate(ws *websocket.Conn) bool {

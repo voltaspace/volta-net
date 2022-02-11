@@ -13,36 +13,37 @@ func newApp(wsHeartBeat *WsHeartBeat,ws *Websocket) *App {
 	)
 }
 
-type VoltaNet struct {
+type Server struct {
 	Signal  Signal
 	CtxType string
 	Events  *Events
 	Options *Options
 }
 
-func NewVoltaNet(host string, port int, ctxType string) *VoltaNet {
+func NewServer(addr string, ctxType string) *Server {
 	Register()
-	return &VoltaNet{
+	return &Server{
 		Signal:  Signal{},
 		CtxType: ctxType,
 		Events:  NewEvents(),
-		Options: &Options{host, port, ctxType},
+		Options: &Options{addr, ctxType},
 	}
 }
 
-func (g *VoltaNet) Run() {
+func (g *Server) Run() {
 	app,_,err := initApp()
 	if err != nil {
 		panic(err)
 	}
+	app.SetOptions(g.Options)
 	app.Run()
 }
 
-func (g *VoltaNet) Router(relativePath string, handlers HandlerFunc) {
+func (g *Server) Router(relativePath string, handlers HandlerFunc) {
 	container.App.Bind(relativePath, handlers)
 }
 
-func (g *VoltaNet) Use() {
+func (g *Server) Use() {
 
 }
 

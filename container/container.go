@@ -2,9 +2,10 @@ package container
 
 import (
 	"errors"
+	"github.com/voltaspace/volta-net/show"
 	"reflect"
+	"runtime"
 	"strconv"
-	"github.com/voltaspace/volta-net/utils"
 )
 
 type Container struct {
@@ -37,7 +38,7 @@ func (container *Container) Bind(appNm interface{},relay interface{})  {
 	if name == "" {
 		return
 	}
-	utils.VoltaPrint(name,relayNm)
+	show.VoltaPrint(name,runtime.FuncForPC(refV.Pointer()).Name())
 	container.instances[name] = InstancesBind{
 		relayNm,
 		refV,
@@ -57,3 +58,4 @@ func (container *Container) Make(method string) (app InstancesBind,err error){
 func (container *Container) GetInstances() map[string]InstancesBind {
 	return container.instances
 }
+
