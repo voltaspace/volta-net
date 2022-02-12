@@ -22,7 +22,7 @@ type WsRequest struct {
 }
 
 type Header struct {
-	ExtendHeader map[string]string
+	ExtendHeader map[string]string `json:"extendHeader"`
 	Seq         string `json:"seq"`
 	Session     string `json:"session"`
 	Method      string `json:"method"`
