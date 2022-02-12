@@ -48,12 +48,9 @@ func NewWebsocket(signal *Signal,events *Events,wsHeartBeat *WsHeartBeat, option
 //.开启socket服务
 func (ws *Websocket) Run() {
 	http.HandleFunc("/", ws.GatewayManager)
-	fmt.Printf("[volta-net] websocket service start (addr %s)",ws.Options.Addr)
+	fmt.Printf("[volta-net] websocket service start (addr %s)\r\n",ws.Options.Addr)
+	go http.ListenAndServe(ws.Options.Addr, nil)
 
-	err := http.ListenAndServe(ws.Options.Addr, nil)
-	if err != nil {
-		fmt.Printf("ListenAndServe: %s", err.Error())
-	}
 }
 
 func (ws *Websocket) SetOptions(options *Options){
@@ -83,6 +80,7 @@ func (ws *Websocket) Alloter(conn *websocket.Conn) {
 	ws.Signal.OnConnect(conn, "guest")
 	go wsConn.readProcess()
 	go wsConn.writeProcess()
+	ws.Events.InitClient(wsConn)
 	for {
 		//.主线程阻塞 5秒检测一次是否断连
 		if wsConn.Closed == true {

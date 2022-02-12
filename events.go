@@ -3,6 +3,7 @@ package voltanet
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/google/wire"
 	"github.com/gorilla/websocket"
 	"github.com/satori/go.uuid"
@@ -20,7 +21,7 @@ func NewEvents() *Events {
 }
 
 //.查询客户端信息
-func (wsEvents Events) GetClientInfo(clientId string) (res ClientInfo, err error) {
+func (wsEvents *Events) GetClientInfo(clientId string) (res ClientInfo, err error) {
 	Client.Lock.RLock()
 	defer Client.Lock.RUnlock()
 	if _, ok := Client.ClientList[clientId]; !ok {
@@ -31,7 +32,7 @@ func (wsEvents Events) GetClientInfo(clientId string) (res ClientInfo, err error
 }
 
 //.通过uid获取绑定信息
-func (wsEvents Events) GetClientInfoByUid(uid string) (res ClientInfo, err error) {
+func (wsEvents *Events) GetClientInfoByUid(uid string) (res ClientInfo, err error) {
 	Client.Lock.RLock()
 	defer Client.Lock.RUnlock()
 	if _, ok := Client.ClientList[uid]; !ok {
@@ -42,7 +43,7 @@ func (wsEvents Events) GetClientInfoByUid(uid string) (res ClientInfo, err error
 }
 
 //.获取所有客户端
-func (wsEvents Events) GetAllClient() (clients []ClientInfo) {
+func (wsEvents *Events) GetAllClient() (clients []ClientInfo) {
 	Client.Lock.RLock()
 	defer Client.Lock.RUnlock()
 	for _, v := range Client.ClientList {
@@ -55,7 +56,7 @@ func (wsEvents Events) GetAllClient() (clients []ClientInfo) {
 }
 
 //.同步uidlist获取对应通道
-func (wsEvents Events) GetClientInfoByUids(uidlist []string) (clientList []ClientInfo, err error) {
+func (wsEvents *Events) GetClientInfoByUids(uidlist []string) (clientList []ClientInfo, err error) {
 	Client.Lock.RLock()
 	defer Client.Lock.RUnlock()
 	for _, v := range uidlist {
@@ -67,12 +68,12 @@ func (wsEvents Events) GetClientInfoByUids(uidlist []string) (clientList []Clien
 }
 
 //.通过ws指针查找client信息
-func (wxEvnets Events) GetClientInfoBySocket(ws *websocket.Conn) (clinet ClientInfo, err error) {
+func (wxEvnets Events) GetClientInfoBySocket(ws *websocket.Conn) (clinet *ClientInfo, err error) {
 	Client.Lock.RLock()
 	defer Client.Lock.RUnlock()
-	for _, v := range Client.ClientList {
+	for k, v := range Client.ClientList {
 		if v.WsConn.Conn == ws {
-			clinet = *v
+			clinet = Client.ClientList[k]
 			return
 		}
 	}
@@ -80,7 +81,7 @@ func (wxEvnets Events) GetClientInfoBySocket(ws *websocket.Conn) (clinet ClientI
 }
 
 //.强制断开uid
-func (wsEvents Events) CloseSocketByUid(uid string) (err error) {
+func (wsEvents *Events) CloseSocketByUid(uid string) (err error) {
 	clientInfo, err := wsEvents.GetClientInfoByUid(uid)
 	if err != nil {
 		return
@@ -89,11 +90,30 @@ func (wsEvents Events) CloseSocketByUid(uid string) (err error) {
 	return
 }
 
-//.client绑定uid
-func (wsEvents Events) Bind(session string, uid string, wsConn *WsConn) (clientId string, err error) {
+func (wsEvents *Events) InitClient(wsConn *WsConn) (clientId string, err error) {
 	time.Sleep(time.Millisecond * 500) //.防止android握手未完成
+	goId := uuid.NewV4()
+	clientId = goId.String()
+	var date int64 = time.Now().Unix()
+	var bindInfo = &ClientInfo{
+		ClientId: clientId,
+		WsConn:   wsConn,
+		Session:  "",
+		Uid:      "",
+		GroupNm:  "all",
+		Pant:     date,
+	}
+	Client.Lock.Lock()
+	Client.ClientList[clientId] = bindInfo
+	Client.Lock.Unlock()
+	wsEvents.SendToSelf(wsConn,fmt.Sprintf("{\"clientId\":%s}",clientId))
+	return
+}
+
+//.client绑定uid
+func (wsEvents *Events) Bind(clientId string,session string, uid string, wsConn *WsConn) (err error) {
 	if session == "" || uid == "" {
-		return "", errors.New("[volta-gateway]:bind client sesion&uid nil")
+		return errors.New("[volta-net]:bind client sesion&uid nil")
 	}
 	goId := uuid.NewV4()
 	clientId = goId.String()
@@ -113,7 +133,7 @@ func (wsEvents Events) Bind(session string, uid string, wsConn *WsConn) (clientI
 }
 
 //.解除绑定
-func (wsEvents Events) UnBind(uid string) (err error) {
+func (wsEvents *Events) UnBind(uid string) (err error) {
 	if uid == "" {
 		return errors.New("uid nil")
 	}
@@ -129,7 +149,7 @@ func (wsEvents Events) UnBind(uid string) (err error) {
 }
 
 //.加入通信组
-func (wsEvents Events) JoinGroup(uid string, groupNm string) (err error) {
+func (wsEvents *Events) JoinGroup(uid string, groupNm string) (err error) {
 	var date int64 = time.Now().Unix()
 	Client.Lock.Lock()
 	defer Client.Lock.Unlock()
@@ -143,7 +163,7 @@ func (wsEvents Events) JoinGroup(uid string, groupNm string) (err error) {
 }
 
 //.离开通信组
-func (wsEvents Events) LeaveGroup(uid string, groupNm string) (err error) {
+func (wsEvents *Events) LeaveGroup(uid string, groupNm string) (err error) {
 	var date int64 = time.Now().Unix()
 	Client.Lock.Lock()
 	defer Client.Lock.Unlock()
@@ -157,7 +177,7 @@ func (wsEvents Events) LeaveGroup(uid string, groupNm string) (err error) {
 }
 
 //.推送消息给uid
-func (wsEvents Events) SendToUid(uid string, body wspl.WsResponse) (err error) {
+func (wsEvents *Events) SendToUid(uid string, body wspl.WsResponse) (err error) {
 	if uid == "" {
 		return errors.New("uid nil")
 	}
@@ -176,8 +196,18 @@ func (wsEvents Events) SendToUid(uid string, body wspl.WsResponse) (err error) {
 	return
 }
 
+func (wsEvents *Events) SendToSelf(wsConn *WsConn ,msg string) (err error){
+	select {
+	case wsConn.WriteChan <- msg:
+	case <-time.After(2 * time.Second):
+		//.2秒无法写进数据,直接中断
+		return errors.New("write timeout 2s")
+	}
+	return
+}
+
 //.推送给多个uid
-func (wsEvents Events) SendToUidlist(uidList []string, body wspl.WsResponse) (err error) {
+func (wsEvents *Events) SendToUidlist(uidList []string, body wspl.WsResponse) (err error) {
 	if len(uidList) <= 0 {
 		return errors.New("uid list len < 0")
 	}
@@ -203,7 +233,7 @@ func (wsEvents Events) SendToUidlist(uidList []string, body wspl.WsResponse) (er
 }
 
 //.推送消息给socket
-func (wsEvents Events) SendToSocket(ws *websocket.Conn, msg string) (err error) {
+func (wsEvents *Events) SendToSocket(ws *websocket.Conn, msg string) (err error) {
 	if ws == nil || msg == "" {
 		return errors.New("wspl&msg nil")
 	}
@@ -215,7 +245,7 @@ func (wsEvents Events) SendToSocket(ws *websocket.Conn, msg string) (err error) 
 }
 
 //.给所有在线socket推送消息
-func (wsEvents Events) SendToAll(body wspl.WsResponse) {
+func (wsEvents *Events) SendToAll(body wspl.WsResponse) {
 	data,_ := json.Marshal(body)
 	buf := string(data)
 	allClient := wsEvents.GetAllClient()
@@ -225,7 +255,7 @@ func (wsEvents Events) SendToAll(body wspl.WsResponse) {
 }
 
 //.群组推送消息
-func (wsEvents Events) SendToGroup(groupNm string, msg interface{}) (err error) {
+func (wsEvents *Events) SendToGroup(groupNm string, msg interface{}) (err error) {
 	jsonB, err := json.Marshal(msg)
 	if err != nil {
 		return
@@ -242,7 +272,7 @@ func (wsEvents Events) SendToGroup(groupNm string, msg interface{}) (err error) 
 }
 
 //.是否在线
-func (wsEvents Events) IsOnline(uid string) (res string, err error) {
+func (wsEvents *Events) IsOnline(uid string) (res string, err error) {
 	var buf map[string]string = make(map[string]string)
 	buf["online"] = "0"
 	isOnline, err := wsEvents.IsOnlineByUid(uid)
@@ -261,7 +291,7 @@ func (wsEvents Events) IsOnline(uid string) (res string, err error) {
 }
 
 //.检测uid是否在线
-func (wsEvents Events) IsOnlineByUid(uid string) (online bool, err error) {
+func (wsEvents *Events) IsOnlineByUid(uid string) (online bool, err error) {
 	Client.Lock.RLock()
 	defer Client.Lock.RUnlock()
 	if _, ok := Client.ClientList[uid]; !ok {
@@ -271,7 +301,7 @@ func (wsEvents Events) IsOnlineByUid(uid string) (online bool, err error) {
 }
 
 //.客户端直连监测通信连接是否正常
-func (wsEvents Events) GatewayCheck(wsConn *WsConn) {
+func (wsEvents *Events) GatewayCheck(wsConn *WsConn) {
 	res := map[string]interface{}{
 		"type": "gate",
 		"msg":  "online",
@@ -288,7 +318,7 @@ func (wsEvents Events) GatewayCheck(wsConn *WsConn) {
 }
 
 //.获取群组内在线uid数量
-func (wsEvents Events) GetUidCountByGroup(groupNm string) int {
+func (wsEvents *Events) GetUidCountByGroup(groupNm string) int {
 	var count int = 0
 	Client.Lock.RLock()
 	defer Client.Lock.RUnlock()
@@ -301,7 +331,7 @@ func (wsEvents Events) GetUidCountByGroup(groupNm string) int {
 }
 
 //.获取所有在线数量
-func (wsEvents Events) GetAllUidCount() int {
+func (wsEvents *Events) GetAllUidCount() int {
 	Client.Lock.RLock()
 	defer Client.Lock.RUnlock()
 	return len(Client.ClientList)

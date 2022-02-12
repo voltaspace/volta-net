@@ -23,4 +23,7 @@ func (app *App) Run(){
 	for _,s := range app.Server {
 		s.Run()
 	}
+	select {
+
+	}
 }

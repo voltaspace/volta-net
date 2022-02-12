@@ -3,14 +3,9 @@ package wspl
 import (
 	"encoding/json"
 	"errors"
+	"github.com/voltaspace/volta-net/constant/cmd"
+	"github.com/voltaspace/volta-net/show"
 	"strings"
-)
-
-var strike = "volta-http/wspl"
-var deviationLen = len(strike) + 1
-
-const (
-	GATEWAY_PADDING string = "<!#Volta>" //.ws通信数据包填充字符
 )
 
 func (wsRequest *WsRequest) Render(wspl Wspl) (err error) {
@@ -45,18 +40,19 @@ type Request struct {
 
 func (write *Request) Analysis(bbo *Bbo) (buf string,err error) {
 	body := write.Data.(string)
-	if len(body) <= 15 || body[0:15] != strike {
+	if len(body) <= 15 || body[0:15] != cmd.STRIKE {
 		err = errors.New("[volta-gateway]:is not gateway protocol")
 		return
 	}
-	deviationStr := body[deviationLen:]
+	deviationStr := body[cmd.DEVIATION_LEN:]
 	if deviationStr == "" {
 		err = errors.New("[volta-gateway]:deviationLen nil")
 		return
 	}
 	//.[0]header [1]body [2]end [3]extend
-	bufs := strings.Split(deviationStr, GATEWAY_PADDING)
-	write.Data = bufs
+	bufs := strings.Split(deviationStr, cmd.GATEWAY_PADDING)
+	newBufs := show.RemoveEmptySlice(bufs)
+	write.Data = newBufs
 	return body,nil
 }
 

@@ -3,6 +3,12 @@ package cmd
 import "time"
 
 const (
+
+	STRIKE = "volta-http/wspl"
+	DEVIATION_LEN = len(STRIKE) + 1
+
+	GATEWAY_PADDING string = "#volta-net#" //.ws通信数据包填充字符
+
 	SEND_TO_UID      int = 14
 	SEND_TO_UID_LIST int = 30
 	SEND_TO_ALL      int = 1

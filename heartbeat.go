@@ -18,11 +18,21 @@ func NewWsHeartBeat(events *Events) *WsHeartBeat{
 	return &WsHeartBeat{events}
 }
 
-//.开启心跳检测
+//.heartbeat Run
 func (wsHeartBeat *WsHeartBeat) Run() {
+	go wsHeartBeat.Scan()
+}
+
+//.update volta-net options SetOptions
+func (wsHeartBeat *WsHeartBeat) SetOptions(options *Options){
+	return
+}
+
+//. scan timeout client Scan
+func (WsHeartBeat *WsHeartBeat) Scan(){
+	defer EndStack("heartbeat")
 	for {
 		var outSocket map[string]ClientInfo = make(map[string]ClientInfo)
-		//.扫描过期已绑定socket
 		Client.Lock.RLock()
 		for k, v := range Client.ClientList{
 			var date int64 = time.Now().Unix()
@@ -32,10 +42,9 @@ func (wsHeartBeat *WsHeartBeat) Run() {
 			}
 		}
 		Client.Lock.RUnlock()
-		//.清除已绑定socket
 		Client.Lock.Lock()
 		for k, v := range outSocket {
-			v.WsConn.Close("[volta-network]:heart beat timeout close")
+			v.WsConn.Close("[volta-net]:heart beat timeout close")
 			delete(Client.ClientList, k) //.踢出socket队列
 		}
 		Client.Lock.Unlock()
@@ -43,21 +52,13 @@ func (wsHeartBeat *WsHeartBeat) Run() {
 	}
 }
 
-func (wsHeartBeat *WsHeartBeat) SetOptions(options *Options){
-	return
-}
-
+//. update active time HeartBeatUpdate
 func (wsHeartBeat *WsHeartBeat) HeartBeatUpdate(ws *websocket.Conn) bool {
 	client,err := wsHeartBeat.Events.GetClientInfoBySocket(ws)
 	if err != nil {
 		return false
 	}
-	//.更新时间
-	Client.Lock.RLock()
-	defer Client.Lock.RUnlock()
-	if _,ok := Client.ClientList[client.Uid];ok{
-		Client.ClientList[client.Uid].Pant = time.Now().Unix()
-	}
+	client.Pant = time.Now().Unix()
 	return true
 }
 

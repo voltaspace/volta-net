@@ -1,9 +1,9 @@
 package wspl
 
 import (
-	"github.com/voltaspace/volta-net/protoc"
 	"encoding/json"
 	"github.com/golang/protobuf/proto"
+	"github.com/voltaspace/volta-net/protoc"
 	"time"
 )
 
@@ -33,7 +33,7 @@ func (write *Response) Analysis(bbo *Bbo) (buff string, err error) {
 }
 
 func JSON(header map[string]string, body string, extend map[string]string) (resB []byte,err error){
-	//.使用protobuf作为基本传输协议
+	//.使用Json作为基本传输协议
 	communication := map[string]interface{}{
 		"header": header,
 		"apply":  body,
@@ -50,7 +50,7 @@ func JSON(header map[string]string, body string, extend map[string]string) (resB
 	return
 }
 func PROTOBUF(header map[string]string, body string, extend map[string]string)  (resB []byte,err error){
-	//.使用Json作为基本传输协议
+	//.使用protobuf作为基本传输协议
 	communication := &protoc.CommunicationMain{
 		Header: header,
 		Apply:  body,

@@ -10,7 +10,7 @@ type Context struct {
 	Bbo       *wspl.Bbo
 	WsConn 	  *WsConn
 	Code      int
-	k         string
+	K         string
 }
 
 // JSON serializes the given struct as JSON into the response body.
@@ -32,7 +32,7 @@ func (c *Context) Render(code int, p provider.Render) {
 		panic(err)
 	}
 	p.WriteContentType(c.Bbo)
-	c.Key(c.k)
+	c.Key(c.K)
 	c.Back()
 }
 
@@ -43,7 +43,7 @@ func (c *Context) Back() {
 	if err != nil {
 		return
 	}
-	c.WsConn.SendSelf(buf)
+	c.WsConn.SendSelf(buf,true)
 }
 
 func (c *Context) Status(code int) {
@@ -51,7 +51,7 @@ func (c *Context) Status(code int) {
 }
 
 func (c *Context) Key(k string) {
-	c.SetResponse(map[string]string{"k":k}).WriteExtend(c.Bbo)
+	c.SetResponse(map[string]string{"seq":k}).WriteHeader(c.Bbo)
 }
 
 func (c *Context) SetResponse(data interface{}) (res *wspl.Response){

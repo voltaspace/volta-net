@@ -15,11 +15,11 @@ type EventsInterface interface {
 	//.同步uidlist获取对应通道
 	GetClientInfoByUids(uidlist []string) (clientList []ClientInfo, err error)
 	//.通过ws指针查找client信息
-	GetClientInfoBySocket(ws *websocket.Conn) (clinet ClientInfo,err error)
+	GetClientInfoBySocket(ws *websocket.Conn) (clinet *ClientInfo,err error)
 	//.强制断开uid
 	CloseSocketByUid(uid string) (err error)
 	//.client绑定uid
-	Bind(session string, uid string, wsConn *WsConn) (clientId string, err error)
+	Bind(clientId string,session string, uid string, wsConn *WsConn) (err error)
 	//.解除绑定
 	UnBind(uid string) (err error)
 	//.加入通信组
@@ -28,6 +28,8 @@ type EventsInterface interface {
 	LeaveGroup(uid string, groupNm string) (err error)
 	//.推送消息给uid
 	SendToUid(uid string, body wspl.WsResponse) (err error)
+	//.推送消息给自己
+	SendToSelf(wsConn *WsConn ,msg string) (err error)
 	//.推送给多个uid
 	SendToUidlist(uidList []string, body wspl.WsResponse) (err error)
 	//.推送消息给socket

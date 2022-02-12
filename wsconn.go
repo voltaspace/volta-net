@@ -13,14 +13,13 @@ import (
 )
 
 type WsConn struct {
-	Conn    *websocket.Conn
-	WriteChan chan string
-	Signal    *Signal
+	Conn        *websocket.Conn
+	WriteChan   chan string
+	Signal      *Signal
 	WsHeartBeat *WsHeartBeat
-	CtxType   string
-	Closed    bool
+	CtxType     string
+	Closed      bool
 }
-
 
 //.只接收client发来的部分信息
 func (wsConn *WsConn) readProcess() {
@@ -54,13 +53,19 @@ func (wsConn *WsConn) writeProcess() {
 }
 
 //.向自己发消息
-func (wsConn *WsConn) SendSelf(msg interface{}) (err error) {
-	jsonB, err := json.Marshal(msg)
-	if err != nil {
-		return
+func (wsConn *WsConn) SendSelf(msg interface{},isJson bool) (err error) {
+	var sendMsg string
+	if isJson {
+		jsonB, err := json.Marshal(msg)
+		if err != nil {
+			return err
+		}
+		sendMsg = string(jsonB)
+	}else{
+		sendMsg = msg.(string)
 	}
 	select {
-	case wsConn.WriteChan <- string(jsonB):
+	case wsConn.WriteChan <- sendMsg:
 	case <-time.After(2 * time.Second):
 		//.2秒无法写进数据,直接中断
 		return errors.New("write timeout 2s")
@@ -88,9 +93,11 @@ func (wsConn *WsConn) gateWayControl(message string) {
 	if message == "gate" {
 		wsConn.gate()
 	}
-	//.更新心跳
 	if message == "ping" {
 		wsConn.WsHeartBeat.HeartBeatUpdate(wsConn.Conn)
+	}
+	if message == "protocol" {
+		wsConn.protocol()
 	}
 	//.解析数据包，生成request数据
 	request, err := wsConn.gatewayDecode(message)
@@ -100,7 +107,7 @@ func (wsConn *WsConn) gateWayControl(message string) {
 	//.路由转发
 	err2 := wsConn.route(request)
 	if err2 != nil {
-		wsConn.SendSelf(err2.Error())
+		wsConn.SendSelf(err2.Error(),false)
 		return
 	}
 }
@@ -132,12 +139,13 @@ func (wsConn *WsConn) route(req *wspl.WsRequest) (err error) {
 	context.Bbo = &wspl.Bbo{
 		Request: req,
 		Response: &wspl.WsResponse{
-			Ctx: wsConn.CtxType,
+			Ctx:    wsConn.CtxType,
 			Header: make(map[string]string),
 			Data:   make([]byte, 0),
 			Extend: make(map[string]string),
 		},
 	}
+	context.K = req.Header.Seq
 	context.WsConn = wsConn
 	paramList := make([]reflect.Value, 1)
 	paramList[0] = reflect.ValueOf(&context)
@@ -150,14 +158,13 @@ func (wsConn *WsConn) gate() {
 	res := map[string]interface{}{
 		"type": "gate",
 		"msg":  "online",
-		"Date": time.Now().Format("2006-01-02 15-04-05"),
+		"Date": time.Now().Format("2006-01-02 15:04:05"),
 	}
-	bodyB, _ := json.Marshal(res)
-	//.防止线程阻塞
-	select {
-	case wsConn.WriteChan <- string(bodyB):
-	case <-time.After(2 * time.Second):
-		//.2秒无法写进数据,直接中断
-		return
-	}
+	wsConn.SendSelf(res,true)
+}
+
+//. 返回协议模板
+func (wsConn *WsConn) protocol() {
+	module := ProtocolModule()
+	wsConn.SendSelf(module,false)
 }
