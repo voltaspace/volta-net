@@ -16,7 +16,7 @@ const (
 	Error   = -1
 )
 
-func (write *Response) Analysis(bbo *Bbo) (buff string, err error) {
+func (rep *Response) Analysis(bbo *Bbo) (buff string, err error) {
 	bodyMainStr := string(bbo.Response.Data)
 	header := bbo.Response.Header
 	extend := bbo.Response.Extend
@@ -67,27 +67,36 @@ func PROTOBUF(header map[string]string, body string, extend map[string]string)  
 	return
 }
 
-func (write *Response) Write(bbo *Bbo) (err error) {
-	bbo.Response.Data = write.Data.([]byte)
+func (rep *Response) Write(bbo *Bbo) (err error) {
+	bbo.Response.Data = rep.Data.([]byte)
 	return
 }
 
-func (write *Response) WriteHeader(bbo *Bbo) (err error) {
-	header := write.Data.(map[string]string)
+func (rep *Response) WriteHeader(bbo *Bbo) (err error) {
+	header := rep.Data.(map[string]string)
 	for k, v := range header {
 		bbo.Response.Header[k] = v
 	}
 	return
 }
 
-func (write *Response) WriteEnd(bbo *Bbo) (err error) {
+func (rep *Response) WriteEnd(bbo *Bbo) (err error) {
 	return
 }
 
-func (write *Response) WriteExtend(bbo *Bbo) (err error) {
-	extend := write.Data.(map[string]string)
+func (rep *Response) WriteExtend(bbo *Bbo) (err error) {
+	extend := rep.Data.(map[string]string)
 	for k, v := range extend {
 		bbo.Response.Extend[k] = v
 	}
 	return
+}
+
+func (wsRep *WsResponse) GetBody() []byte {
+	return wsRep.Data
+}
+
+
+func (wsRep *WsResponse) GetHeader() map[string]string{
+	return wsRep.Header
 }

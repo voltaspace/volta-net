@@ -54,6 +54,14 @@ func (c *Context) Key(k string) {
 	c.SetResponse(map[string]string{"seq":k}).WriteHeader(c.Bbo)
 }
 
+func (c *Context) Request() *wspl.WsRequest{
+	return c.Bbo.Request
+}
+
+func (c *Context) Response() *wspl.WsResponse {
+	return c.Bbo.Response
+}
+
 func (c *Context) SetResponse(data interface{}) (res *wspl.Response){
 	return &wspl.Response{data}
 }

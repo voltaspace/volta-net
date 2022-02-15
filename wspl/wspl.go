@@ -22,12 +22,12 @@ type WsRequest struct {
 }
 
 type Header struct {
-	ExtendHeader map[string]string `json:"extendHeader"`
+	ContentType string `json:"contentType"`
+	Method      string `json:"method"`
 	Seq         string `json:"seq"`
 	Session     string `json:"session"`
-	Method      string `json:"method"`
-	ContentType string `json:"contentType"`
 	Protocol    string `json:"protocol"`
+	ExtendHeader map[string]string `json:"extendHeader"`
 }
 
 //.ws包尾部
