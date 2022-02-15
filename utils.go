@@ -29,12 +29,12 @@ func EndStack(appName string) {
 
 func ProtocolModule() string{
 	header := wspl.Header{
-		map[string]string{"auth": "test"},
+		"application/json",
+		"ping",
 		GetRandomString(32),
 		"session",
-		"ping",
-		"application/json",
 		"volta",
+		map[string]string{"auth": "test"},
 	}
 	headerB, _ := json.Marshal(header)
 	body := "{\"body\":\"test\"}"
