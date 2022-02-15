@@ -67,7 +67,8 @@ func (req *Request) WriteHeader(bbo *Bbo) (err error) {
 
 func (req *Request) Write(bbo *Bbo) (err error) {
 	bufs := req.Data.([]string)
-	err = json.Unmarshal([]byte(bufs[1]), &bbo.Request.Data)
+	bbo.Request.Data = bufs[1]
+	err = json.Unmarshal([]byte(bufs[1]), &bbo.Request.Param)
 	if err != nil {
 		return
 	}
@@ -92,8 +93,16 @@ func (req *Request) WriteExtend(bbo *Bbo) (err error) {
 	return
 }
 
-func (wsReq *WsRequest) GetBody() interface{} {
+func (wsReq *WsRequest) GetBody() string {
 	return wsReq.Data
+}
+
+func (wsReq *WsRequest) GetParam(key string) interface{}{
+	return wsReq.Param[key]
+}
+
+func (WsReq *WsRequest) GetParams() map[string]interface{}{
+	return WsReq.Param
 }
 
 func (wsReq *WsRequest) GetHeader() Header {

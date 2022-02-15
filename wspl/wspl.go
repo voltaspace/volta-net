@@ -16,7 +16,8 @@ type Bbo struct {
 
 type WsRequest struct {
 	Header Header
-	Data   interface{}
+	Data   string
+	Param map[string]interface{}
 	End    End
 	Extend map[string]string
 }
