@@ -105,7 +105,7 @@ func (wsEvents *Events) InitClient(wsConn *WsConn) (clientId string, err error) 
 	Client.Lock.Lock()
 	Client.ClientList[clientId] = bindInfo
 	Client.Lock.Unlock()
-	wsEvents.SendToSelf(wsConn,fmt.Sprintf("{\"clientId\":%s}",clientId))
+	wsEvents.SendToSelf(wsConn,fmt.Sprintf("{\"clientId\":\"%s\"}",clientId))
 	return
 }
 
