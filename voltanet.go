@@ -30,14 +30,25 @@ func NewServer(addr string, ctxType string) *Server {
 	}
 }
 
+// Run all core services synchronously
 func (g *Server) Run() {
-	app,_,err := initApp()
+	g.Init().Run(1)
+}
+
+// Run all core services asynchronously
+func (g *Server) Defualt() {
+	g.Init().Run(0)
+}
+
+// Init Initialization, dependency injection
+func (g *Server) Init() (newApp *app) {
+	newApp,_,err := initApp()
 	if err != nil {
 		panic(err)
 	}
-	app.SetOptions(g.Options)
-	app.SetEvents(g.Events)
-	app.Run()
+	newApp.SetOptions(g.Options)
+	newApp.SetEvents(g.Events)
+	return
 }
 
 func (g *Server) Router(relativePath string, handlers HandlerFunc) {
