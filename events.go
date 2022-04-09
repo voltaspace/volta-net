@@ -7,7 +7,6 @@ import (
 	"github.com/google/wire"
 	"github.com/gorilla/websocket"
 	"github.com/satori/go.uuid"
-	"github.com/voltaspace/volta-net/wspl"
 	"time"
 )
 
@@ -177,18 +176,16 @@ func (wsEvents *Events) LeaveGroup(uid string, groupNm string) (err error) {
 }
 
 //.推送消息给uid
-func (wsEvents *Events) SendToUid(uid string, body wspl.WsResponse) (err error) {
+func (wsEvents *Events) SendToUid(uid string, msg string) (err error) {
 	if uid == "" {
 		return errors.New("uid nil")
 	}
-	data,_ := json.Marshal(body)
-	buf := string(data)
 	clientInfo, err := wsEvents.GetClientInfoByUid(uid)
 	if err != nil {
 		return
 	}
 	select {
-	case clientInfo.WsConn.WriteChan <- buf:
+	case clientInfo.WsConn.WriteChan <- msg:
 	case <-time.After(2 * time.Second):
 		//.2秒无法写进数据,直接中断
 		return errors.New("write timeout 5s")
@@ -207,7 +204,7 @@ func (wsEvents *Events) SendToSelf(wsConn *WsConn ,msg string) (err error){
 }
 
 //.推送给多个uid
-func (wsEvents *Events) SendToUidlist(uidList []string, body wspl.WsResponse) (err error) {
+func (wsEvents *Events) SendToUidlist(uidList []string, msg string) (err error) {
 	if len(uidList) <= 0 {
 		return errors.New("uid list len < 0")
 	}
@@ -218,12 +215,10 @@ func (wsEvents *Events) SendToUidlist(uidList []string, body wspl.WsResponse) (e
 	if len(clientList) <= 0 {
 		return errors.New("client list len < 0")
 	}
-	data ,_ := json.Marshal(body)
-	buf := string(data)
 	for _, v := range clientList {
 		//.防止线程阻塞
 		select {
-		case v.WsConn.WriteChan <- buf:
+		case v.WsConn.WriteChan <- msg:
 		case <-time.After(2 * time.Second):
 			//.2秒无法写进数据,直接中断
 			continue
@@ -245,9 +240,7 @@ func (wsEvents *Events) SendToSocket(ws *websocket.Conn, msg string) (err error)
 }
 
 //.给所有在线socket推送消息
-func (wsEvents *Events) SendToAll(body wspl.WsResponse) {
-	data,_ := json.Marshal(body)
-	buf := string(data)
+func (wsEvents *Events) SendToAll(buf string) {
 	allClient := wsEvents.GetAllClient()
 	for _, v := range allClient {
 		v.WsConn.WriteChan <- buf

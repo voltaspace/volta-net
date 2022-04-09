@@ -2,7 +2,6 @@ package voltanet
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/voltaspace/volta-net/wspl"
 )
 
 type EventsInterface interface {
@@ -27,15 +26,15 @@ type EventsInterface interface {
 	//.离开通信组
 	LeaveGroup(uid string, groupNm string) (err error)
 	//.推送消息给uid
-	SendToUid(uid string, body wspl.WsResponse) (err error)
+	SendToUid(uid string, msg string) (err error)
 	//.推送消息给自己
 	SendToSelf(wsConn *WsConn ,msg string) (err error)
 	//.推送给多个uid
-	SendToUidlist(uidList []string, body wspl.WsResponse) (err error)
+	SendToUidlist(uidList []string, msg string) (err error)
 	//.推送消息给socket
 	SendToSocket(ws *websocket.Conn, msg string) (err error)
 	//.给所有在线socket推送消息
-	SendToAll(body wspl.WsResponse)
+	SendToAll(body string)
 	//.群组推送消息
 	SendToGroup(groupNm string, msg interface{}) (err error)
 	//.是否在线

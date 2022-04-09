@@ -29,7 +29,7 @@ func (wsConn *WsConn) readProcess() {
 		if err != nil {
 			return
 		}
-		wsConn.gateWayControl(string(message))
+		go wsConn.gateWayControl(string(message))
 	}
 }
 
@@ -53,19 +53,9 @@ func (wsConn *WsConn) writeProcess() {
 }
 
 //.向自己发消息
-func (wsConn *WsConn) SendSelf(msg interface{},isJson bool) (err error) {
-	var sendMsg string
-	if isJson {
-		jsonB, err := json.Marshal(msg)
-		if err != nil {
-			return err
-		}
-		sendMsg = string(jsonB)
-	}else{
-		sendMsg = msg.(string)
-	}
+func (wsConn *WsConn) SendSelf(msg string) (err error) {
 	select {
-	case wsConn.WriteChan <- sendMsg:
+	case wsConn.WriteChan <- msg:
 	case <-time.After(2 * time.Second):
 		//.2秒无法写进数据,直接中断
 		return errors.New("write timeout 2s")
@@ -89,6 +79,7 @@ func (wsConn *WsConn) Close(appName string) {
 
 //.Gateway消息控制器
 func (wsConn *WsConn) gateWayControl(message string) {
+	defer EndStack("[volta-gateway]:gateway control panic")
 	wsConn.Signal.OnMessage(wsConn.Conn, message)
 	if message == "gate" {
 		wsConn.gate()
@@ -107,7 +98,7 @@ func (wsConn *WsConn) gateWayControl(message string) {
 	//.路由转发
 	err2 := wsConn.route(request)
 	if err2 != nil {
-		wsConn.SendSelf(err2.Error(),false)
+		wsConn.SendSelf(err2.Error())
 		return
 	}
 }
@@ -160,11 +151,12 @@ func (wsConn *WsConn) gate() {
 		"msg":  "online",
 		"Date": time.Now().Format("2006-01-02 15:04:05"),
 	}
-	wsConn.SendSelf(res,true)
+	jsonB,_ := json.Marshal(res)
+	wsConn.SendSelf(string(jsonB))
 }
 
 //. 返回协议模板
 func (wsConn *WsConn) protocol() {
 	module := ProtocolModule()
-	wsConn.SendSelf(module,false)
+	wsConn.SendSelf(module)
 }

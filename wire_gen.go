@@ -8,7 +8,7 @@ package voltanet
 // Injectors from wire.go:
 
 // initApp init gateway application.
-func initApp() (*App, func(), error) {
+func initApp() (*app, func(), error) {
 	events := NewEvents()
 	wsHeartBeat := NewWsHeartBeat(events)
 	signal := NewSignal()

@@ -6,7 +6,7 @@ import (
 
 type HandlerFunc func(ctx *Context)
 
-func newApp(wsHeartBeat *WsHeartBeat,ws *Websocket) *App {
+func newApp(wsHeartBeat *WsHeartBeat,ws *Websocket) *app {
 	return NewApp(
 		ws,
 		wsHeartBeat,
@@ -36,6 +36,7 @@ func (g *Server) Run() {
 		panic(err)
 	}
 	app.SetOptions(g.Options)
+	app.SetEvents(g.Events)
 	app.Run()
 }
 
